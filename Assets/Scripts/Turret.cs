@@ -5,17 +5,46 @@ namespace Assets.Scripts
 {
     public class Turret : MonoBehaviour
     {
+        [Header("Attributes")]
         public float range = 15f;
+        public float fireRate = 1f;
+        private float fireCountdown = 0f;
+
+        [Header("Unity Setup Fields")]
         public Transform partToRotate;
         public float turretSpeed = 10f;
-
         private Transform target = null;
-        private string enemyTag = "Enemy";
+
+        public GameObject bulletPrefab;
+        public Transform firePoint;
+
+        private readonly string enemyTag = "Enemy";
+
 
         // Use this for initialization
         void Start()
         {
-            InvokeRepeating("UpdateTarget", 0f, 0.5f);
+            InvokeRepeating(nameof(UpdateTarget), 0f, 0.5f);
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (target == null)
+                return;
+
+            Vector3 dir = target.position - transform.position;
+            Quaternion lookRotation = Quaternion.LookRotation(dir);
+            Vector3 rotation = Quaternion.Lerp(partToRotate.rotation, lookRotation, Time.deltaTime * turretSpeed).eulerAngles;
+            partToRotate.rotation = Quaternion.Euler(0f, rotation.y, 0f);
+
+            if (fireCountdown <= 0)
+            {
+                Shoot();
+                fireCountdown = 1 / fireRate;
+            }
+
+            fireCountdown -= Time.deltaTime;
         }
 
         private void UpdateTarget()
@@ -37,7 +66,6 @@ namespace Assets.Scripts
 
             if (nearestEnemy != null && shortestDistance <= range)
             {
-                Debug.Log($"Target Found: {target}");
                 target = nearestEnemy.transform;
             }
             else
@@ -46,16 +74,10 @@ namespace Assets.Scripts
             }
         }
 
-        // Update is called once per frame
-        void Update()
+        private void Shoot()
         {
-            if (target == null)
-                return;
-
-            Vector3 dir = target.position - transform.position;
-            Quaternion lookRotation = Quaternion.LookRotation(dir);
-            Vector3 rotation = Quaternion.Lerp(partToRotate.rotation, lookRotation, Time.deltaTime * turretSpeed).eulerAngles;
-            partToRotate.rotation = Quaternion.Euler(0f, rotation.y, 0f);
+            Debug.Log("Shoot");
+            Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
         }
 
         private void OnDrawGizmosSelected()
