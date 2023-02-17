@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.Scripts
 {
@@ -65,19 +64,18 @@ namespace Assets.Scripts
             }
 
             if (nearestEnemy != null && shortestDistance <= range)
-            {
                 target = nearestEnemy.transform;
-            }
             else
-            {
                 target = null;
-            }
         }
 
         private void Shoot()
         {
-            Debug.Log("Shoot");
-            Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+            GameObject bulletGO = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+            Bullet bullet = bulletGO.GetComponent<Bullet>();
+
+            if (bullet != null)
+                bullet.Seek(target);
         }
 
         private void OnDrawGizmosSelected()
